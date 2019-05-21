@@ -41,6 +41,7 @@ def image_to_tensor(img_path, use_gpu):
 def plot_image(img_path):
     image = plt.imread(img_path)
     plt.imshow(image)
+    plt.title("Test original image")
 
 #Plot image and show the predicted class
 def plot_image_and_class(model, img_path):
@@ -48,23 +49,27 @@ def plot_image_and_class(model, img_path):
     plt.imshow(image)
     tensor_image = image_to_tensor(img_path, True)
     tensor_model_image = model(tensor_image)
-    detected_label, accuracy = detect_class(tensor_model_image)
+    sm, detected_label, accuracy = detect_class(tensor_model_image)
     plt.title('Accuracy: '+ str(accuracy*100)[0:5] + '%')
     plt.suptitle(detected_label)
 
 #Return the class of a Tensor image
 def detect_class(tensor_image):
     classes = list('ABCDEFHIKLMNOPQRTUVWY')
-    max_value = torch.softmax(tensor_image, dim=1).detach().cpu().numpy().max()
-    arg_max = torch.softmax(tensor_image, dim=1).detach().cpu().numpy().argmax()
-    return classes[arg_max], max_value
+    sm = torch.softmax(tensor_image, dim=1).detach().cpu().numpy()
+    max_value = sm.max()
+    arg_max = sm.argmax()
+    return sm[0], classes[arg_max], max_value
 
 #Print results of an image path
-def print_results(model, img_path):
-    tensor_image = image_to_tensor(img_path, True)
+def print_results(model, tensor_image):
     tensor_model_image = model(tensor_image)
-    detected_label, accuracy = detect_class(tensor_model_image)
-    print(detected_label)
+    sm, detected_label, accuracy = detect_class(tensor_model_image)
+    print("Softmax")
+    classes = list('ABCDEFHIKLMNOPQRTUVWY')
+    for i, acc in enumerate(sm):
+        print(classes[i], '\t', str(acc*100)[0:5] + '%')
+    print("Detected label: "+detected_label)
     print('Accuracy: '+ str(accuracy*100)[0:5] + '%')
 
 #Get feature maps from a lenet model
@@ -113,8 +118,8 @@ def get_alexnet_feat_maps(alexnet_model, tensor_image):
 #Plot feature map from a model
 def plot_feat_map(f_map):
     feat_map_number = f_map.shape[1]
-    print(feat_map_number)
-    divisions = 5
+    print("Feature output maps number: ", feat_map_number)
+    divisions = 16
     fig, axes = plt.subplots(nrows=divisions, ncols=divisions, figsize=(20, 20))
     for i in range(0, divisions):
         for j in range(0, divisions):
@@ -135,15 +140,16 @@ def test_image_from_path(model, test_img_path, img_name, use_gpu, transform):
 
     pil_image = Image.open(img_path)
     transformed_image = transform_test_image(pil_image, transform)
-    #print("Transform shape ", transformed_image.shape)
+    print("Transform image shape: ", transformed_image.shape)
     if use_gpu:
         transformed_image = transformed_image.cuda()
-    tensor_model_image = model(transformed_image)
-    plot_image_and_class(model, img_path)
+
+    print_results(model, transformed_image)
+    plot_image(img_path)
 
     feat_maps = get_alexnet_feat_maps(model, transformed_image)
     #feat_maps = get_lenet_feat_maps(model, transformed_image)
-    print(feat_maps.shape)
+    print("Feature maps shape: ", feat_maps.shape)
     plot_feat_map(feat_maps)
 
 def test_image_from_dataset(model, use_gpu, transform, dataset):
@@ -155,8 +161,9 @@ def test_image_from_dataset(model, use_gpu, transform, dataset):
     #print("Transform shape ", transformed_image.shape)
     if use_gpu:
         transformed_image = transformed_image.cuda()
-    tensor_model_image = model(transformed_image)
-    plot_image_and_class(model, img_path)
+
+    print_results(model, transformed_image)
+    plot_image(img_path)
 
     feat_maps = get_alexnet_feat_maps(model, transformed_image)
     #feat_maps = get_lenet_feat_maps(model, transformed_image)
@@ -164,7 +171,9 @@ def test_image_from_dataset(model, use_gpu, transform, dataset):
     plot_feat_map(feat_maps)
 
 def transform_test_image(pil_image, transform):
-    plt.imshow(pil_image)
     transformed_image = transform(pil_image)
+    numpy_image = transformed_image.numpy()[0]
+    plt.imshow(numpy_image)
+    plt.title("Resized image transform")
     transformed_image = transformed_image.unsqueeze(0)
     return transformed_image
