@@ -6,6 +6,9 @@ import os
 import random
 from PIL import Image
 
+def count_parameters(model):
+    return sum(p.numel() for p in model.parameters() if p.requires_grad)
+
 def imshow_tensor(image, ax=None, title=None):
     """Imshow for Tensor."""
 
@@ -146,11 +149,11 @@ def test_image_from_path(model, test_img_path, img_name, use_gpu, transform):
 
     print_results(model, transformed_image)
     plot_image(img_path)
-
-    feat_maps = get_alexnet_feat_maps(model, transformed_image)
-    #feat_maps = get_lenet_feat_maps(model, transformed_image)
-    print("Feature maps shape: ", feat_maps.shape)
-    plot_feat_map(feat_maps)
+    if(model.name != 'VGG16'):
+        if model.name == 'AlexNet': feat_maps = get_alexnet_feat_maps(model, transformed_image)
+        if model.name == 'LeNet5': feat_maps = get_lenet_feat_maps(model, transformed_image)
+        print("Feature maps shape: ", feat_maps.shape)
+        plot_feat_map(feat_maps)
 
 def test_image_from_dataset(model, use_gpu, transform, dataset):
     r = random.randint(0, len(dataset))
@@ -164,11 +167,11 @@ def test_image_from_dataset(model, use_gpu, transform, dataset):
 
     print_results(model, transformed_image)
     plot_image(img_path)
-
-    feat_maps = get_alexnet_feat_maps(model, transformed_image)
-    #feat_maps = get_lenet_feat_maps(model, transformed_image)
-    print(feat_maps.shape)
-    plot_feat_map(feat_maps)
+    if(model.name != 'VGG16'):
+        if model.name == 'AlexNet': feat_maps = get_alexnet_feat_maps(model, transformed_image)
+        if model.name == 'LeNet5': feat_maps = get_lenet_feat_maps(model, transformed_image)
+        print("Feature maps shape: ", feat_maps.shape)
+        plot_feat_map(feat_maps)
 
 def transform_test_image(pil_image, transform):
     transformed_image = transform(pil_image)
