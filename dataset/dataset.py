@@ -41,8 +41,8 @@ def get_image_transforms():
         'train': transforms.Compose([
                     transforms.ColorJitter(brightness=0.2, contrast=0.5, saturation=0.2, hue=0),
                     #transforms.Grayscale(3),
-                    transforms.RandomAffine(degrees = 10, translate=(0.2,0), fillcolor=(255,255,255)),
-                    transforms.Resize(size=(224, 224)),
+                    transforms.RandomAffine(degrees = 5, translate=(0.2,0), fillcolor=(255,255,255)),
+                    transforms.Resize(size=(100, 100)),
                     #transforms.RandomResizedCrop(size=256, scale=(0.8, 1.0)),
                     transforms.RandomHorizontalFlip(),
                     #transforms.CenterCrop(size=224),  # Image net standards
@@ -52,7 +52,8 @@ def get_image_transforms():
                                 std=[0.229, 0.224, 0.225])
         ]),
         'valid': transforms.Compose([
-                    transforms.Resize(size=(224, 224)),
+                    #transforms.Grayscale(3),
+                    transforms.Resize(size=(100, 100)),
                     #transforms.CenterCrop(size=224),
                     transforms.ToTensor(),
                     transforms.Normalize

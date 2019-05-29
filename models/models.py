@@ -8,14 +8,16 @@ class LeNet5(torch.nn.Module):
     
     def __init__(self, n_output=21):
         super(LeNet5, self).__init__()
-        self.conv1 = torch.nn.Conv2d(in_channels=3, out_channels=6, kernel_size=3, stride=1)
-        self.conv2 = torch.nn.Conv2d(in_channels=6, out_channels=16, kernel_size=3, stride=1)
+        #self.conv1 = torch.nn.Conv2d(in_channels=1, out_channels=6, kernel_size=3) 1 input channel
+        self.conv1 = torch.nn.Conv2d(in_channels=3, out_channels=6, kernel_size=3)
+        self.conv2 = torch.nn.Conv2d(in_channels=6, out_channels=16, kernel_size=3)
         self.adapool  = torch.nn.AdaptiveMaxPool2d((5, 5))
         self.fc1 = torch.nn.Linear(in_features=16*5*5, out_features=120)
         self.fc2 = torch.nn.Linear(in_features=120, out_features=84)
         self.fc3 = torch.nn.Linear(in_features=84, out_features=n_output)
         self.activation = torch.nn.ReLU()
-    
+        self.dropout = torch.nn.Dropout(p=0.2, inplace=False)
+
     def forward(self, x):
         z = self.activation(self.conv1(x))
         z = F.max_pool2d(z, 2)
@@ -26,13 +28,15 @@ class LeNet5(torch.nn.Module):
         z = self.activation(self.fc1(z))
         z = self.activation(self.fc2(z))
         y = self.fc3(z)
+        y = self.dropout(y)
         return y
-    
+
     def save_weights(self, path):
         torch.save(self.state_dict(), path)
     
     def load_weights(self, path):
         self.load_state_dict(torch.load(path))
+
 
 class AlexNet(torch.nn.Module):
 
